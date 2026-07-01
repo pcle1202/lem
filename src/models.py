@@ -7,13 +7,28 @@ from google import genai
 
 load_dotenv()
 
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+_groq_client = None
+_gemini_client = None
+
+
+def _get_groq_client():
+    global _groq_client
+    if _groq_client is None:
+        _groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    return _groq_client
+
+
+def _get_gemini_client():
+    global _gemini_client
+    if _gemini_client is None:
+        _gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    return _gemini_client
+
 
 def query_groq(prompt: str, model: str = "llama-3.1-8b-instant") -> dict:
     start = time.time()
     try:
-        response = groq_client.chat.completions.create(
+        response = _get_groq_client().chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1000
@@ -30,7 +45,7 @@ def query_groq(prompt: str, model: str = "llama-3.1-8b-instant") -> dict:
 def query_gemini(prompt: str, model: str = "gemini-2.5-flash") -> dict:
     start = time.time()
     try:
-        response = gemini_client.models.generate_content(
+        response = _get_gemini_client().models.generate_content(
             model=model,
             contents=prompt
         )
